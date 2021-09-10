@@ -7,7 +7,7 @@
 
 import UIKit
 
-struct Item {
+struct Item: Codable {
     var name: String
     var isChecked: Bool
 }
@@ -16,6 +16,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     @IBOutlet private weak var tableView: UITableView!
 
+    private let itemsKey = "itemsKey"
     private let addSegue = "addSegue"
     private let editSegue = "editSegue"
 
@@ -28,6 +29,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     private var itemName: String?
     private var rowForEditing: Int?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        guard let data = UserDefaults.standard.value(forKey: itemsKey) as? Data else { return }
+        guard let data2 = try? PropertyListDecoder().decode([Item].self, from: data) else { return }
+        items = data2
+        }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
 
@@ -68,6 +77,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
         let indexPaths = [indexPath]
         tableView.reloadRows(at: indexPaths, with: .fade)
+        arraySaving()
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
@@ -76,14 +86,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         self.performSegue(withIdentifier: editSegue, sender: self)
     }
 
-    // swiftlint:disable line_length
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-    // swiftlint:enable line_length
+    func tableView(_ tableView: UITableView,
+                   commit editingStyle: UITableViewCell.EditingStyle,
+                   forRowAt indexPath: IndexPath) {
 
         if editingStyle == .delete {
             items.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
         }
+        arraySaving()
     }
 
     @IBAction private func exitCancel(segue: UIStoryboardSegue) {
@@ -105,5 +116,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
 
         tableView.reloadData()
+        arraySaving()
+    }
+
+    func arraySaving() {
+        UserDefaults.standard.set(try? PropertyListEncoder().encode(items), forKey: itemsKey)
     }
 }
