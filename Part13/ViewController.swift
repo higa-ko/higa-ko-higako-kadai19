@@ -34,9 +34,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
 
         guard let data = UserDefaults.standard.value(forKey: itemsKey) as? Data else { return }
-        guard let data2 = try? PropertyListDecoder().decode([Item].self, from: data) else { return }
-        items = data2
-        }
+        guard let items = try? PropertyListDecoder().decode([Item].self, from: data) else { return }
+        self.items = items
+    }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
 
@@ -77,7 +77,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
         let indexPaths = [indexPath]
         tableView.reloadRows(at: indexPaths, with: .fade)
-        arraySaving()
+        saveItems()
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
@@ -94,7 +94,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             items.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
         }
-        arraySaving()
+        saveItems()
     }
 
     @IBAction private func exitCancel(segue: UIStoryboardSegue) {
@@ -116,10 +116,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
 
         tableView.reloadData()
-        arraySaving()
+        saveItems()
     }
 
-    func arraySaving() {
+    private func saveItems() {
         UserDefaults.standard.set(try? PropertyListEncoder().encode(items), forKey: itemsKey)
     }
 }
